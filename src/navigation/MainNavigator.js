@@ -1,13 +1,14 @@
 import React from "react";
-import { createStackNavigator } from "@react-navigation/native-stack";
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+
 import ChatSettingsScreen from "../screens/ChatSettingsScreen";
-import Settings from '../screens/Settings'
+import Settings from "../screens/Settings";
 import ChatListScreen from "../screens/ChatListScreen";
 import ChatScreen from "../screens/ChatScreen";
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
