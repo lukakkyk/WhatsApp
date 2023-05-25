@@ -4,8 +4,19 @@ import SubmitButton from "./SubmitButton";
 import { Feather } from "@expo/vector-icons";
 import { validateInput } from "../utils/actions/formActions";
 import { reducer } from "../utils/reducers/formReducer";
+import { signUp } from "../utils/actions/authActions";
+
+import {getFirebaseApp}  from '../utils/firebaseHelper';
+
+console.log('getFirebaseApp', getFirebaseApp())
 
 const initialState = {
+  inputValues: {
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  },
   inputValidities: {
     firstName: false,
     lastName: false,
@@ -22,10 +33,19 @@ const SignUpForm = (props) => {
     (inputId, inputValue) => {
       console.log(validateInput(inputId, inputValue));
       const result = validateInput(inputId, inputValue);
-      dispatchFormState({ inputId, validationResult: result });
+      dispatchFormState({ inputId, validationResult: result, inputValue });
     },
     [dispatchFormState]
   );
+
+  const authHandler = () => {
+    signUp(
+      formState.inputValues.firstName,
+      formState.inputValues.lastName,
+      formState.inputValues.email,
+      formState.inputValues.password
+    );
+  };
 
   return (
     <>
@@ -74,7 +94,7 @@ const SignUpForm = (props) => {
       <SubmitButton
         title="Click me"
         style={{ marginTop: 20 }}
-        onPress={() => console.log("button pressed")}
+        onPress={authHandler}
         disabled={!formState.formIsValid}
       />
     </>
