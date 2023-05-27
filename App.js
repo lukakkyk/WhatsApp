@@ -1,10 +1,11 @@
-
 import { StyleSheet, AppRegistry } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppNavigator from "./src/navigation/AppNavigator";
+import { Provider } from "react-redux";
+import { store } from "./src/store/store";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -54,13 +55,15 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider onLayout={onLayout} style={styles.container}>
-      <AppNavigator />
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <SafeAreaProvider onLayout={onLayout} style={styles.container}>
+        <AppNavigator />
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 
-AppRegistry.registerComponent('Appname', () => App);
+AppRegistry.registerComponent("Appname", () => App);
 
 const styles = StyleSheet.create({
   container: {
@@ -68,9 +71,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   label: {
-    color: 'black',
+    color: "black",
     fontSize: 18,
-    fontFamily: "regular"
-  }
+    fontFamily: "regular",
+  },
 });
-

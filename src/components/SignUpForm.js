@@ -1,14 +1,13 @@
-import React, { useCallback, useReducer } from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import Input from "./Input";
 import SubmitButton from "./SubmitButton";
 import { Feather } from "@expo/vector-icons";
 import { validateInput } from "../utils/actions/formActions";
 import { reducer } from "../utils/reducers/formReducer";
 import { signUp } from "../utils/actions/authActions";
-
-import {getFirebaseApp}  from '../utils/firebaseHelper';
-
-console.log('getFirebaseApp', getFirebaseApp())
+import { Alert, ActivityIndicator } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import Colors from "../constants/Colors";
 
 const initialState = {
   inputValues: {
@@ -27,8 +26,12 @@ const initialState = {
 };
 
 const SignUpForm = (props) => {
+  const dispatch = useDispatch();
+  // const stateData = useSelector((state) => state.auth);
+  // console.log("stateData", stateData);
   const [formState, dispatchFormState] = useReducer(reducer, initialState);
-
+  const [error, setError] = useState();
+  const [isLoading, setIsLoading] = useState(false);
   const inputChangedHandler = useCallback(
     (inputId, inputValue) => {
       console.log(validateInput(inputId, inputValue));
@@ -38,13 +41,28 @@ const SignUpForm = (props) => {
     [dispatchFormState]
   );
 
-  const authHandler = () => {
-    signUp(
-      formState.inputValues.firstName,
-      formState.inputValues.lastName,
-      formState.inputValues.email,
-      formState.inputValues.password
-    );
+  useEffect(() => {
+    if (error) {
+      Alert.alert("An error occured", error, [{ text: "Okay" }]);
+    }
+  }, [error]);
+
+  const authHandler = async () => {
+    try {
+      setIsLoading(true);
+      const action = signUp(
+        formState.inputValues.firstName,
+        formState.inputValues.lastName,
+        formState.inputValues.email,
+        formState.inputValues.password
+      );
+      dispatch(action);
+      setError(null);
+    } catch (error) {
+      console.log("error", error);
+      setError(error.message);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -91,12 +109,20 @@ const SignUpForm = (props) => {
         secureTextEntry={true}
         errorText={formState.inputValidities["password"]}
       />
-      <SubmitButton
-        title="Click me"
-        style={{ marginTop: 20 }}
-        onPress={authHandler}
-        disabled={!formState.formIsValid}
-      />
+      {isLoading ? (
+        <ActivityIndicator
+          size={"small"}
+          color={Colors.primary}
+          style={{ marginTop: 10 }}
+        />
+      ) : (
+        <SubmitButton
+          title="Sign up"
+          onPress={authHandler}
+          style={{ marginTop: 20 }}
+          disabled={!formState.formIsValid}
+        />
+      )}
     </>
   );
 };

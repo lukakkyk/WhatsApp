@@ -1,7 +1,5 @@
 import { initializeApp } from "firebase/app";
 
-
-
 export const getFirebaseApp = () => {
   // Import the functions you need from the SDKs you need
 
