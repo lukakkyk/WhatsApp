@@ -47,23 +47,24 @@ const SignUpForm = (props) => {
     }
   }, [error]);
 
-  const authHandler = async () => {
+  const authHandler = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log();
       const action = signUp(
         formState.inputValues.firstName,
         formState.inputValues.lastName,
         formState.inputValues.email,
         formState.inputValues.password
       );
-      dispatch(action);
       setError(null);
+      await dispatch(action);
     } catch (error) {
       console.log("error", error);
       setError(error.message);
       setIsLoading(false);
     }
-  };
+  }, [dispatch, formState]);
 
   return (
     <>

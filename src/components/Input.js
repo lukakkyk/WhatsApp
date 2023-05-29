@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import Colors from "../constants/Colors";
 
-const Input = ({label, icon, iconSize, errorText, IconPack, onInputChanged, id, ...props}) => {
+const Input = ({label, icon, iconSize, errorText, IconPack, onInputChanged, id, ...props }) => {
 
   const onChangetext = (text) => {
      onInputChanged(id, text)
@@ -16,7 +16,7 @@ const Input = ({label, icon, iconSize, errorText, IconPack, onInputChanged, id, 
         <TextInput {...props} style={styles.input} onChangeText={onChangetext} />
       </View>
       {errorText && <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{errorText[0]}</Text>
+        <Text style={styles.errorText}>{errorText}</Text>
       </View>}
     </View>
   );
