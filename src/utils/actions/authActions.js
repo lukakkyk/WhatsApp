@@ -4,7 +4,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { child, getDatabase, ref, set } from "firebase/database";
+import { child, getDatabase, ref, set, update } from "firebase/database";
 import { authenticate, logout } from "../../store/authSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserData } from "./userActions";
@@ -26,7 +26,6 @@ export const signUp = (firstName, lastName, email, password) => {
       const { accessToken, expirationTime } = stsTokenManager;
 
       const expiryDate = new Date(expirationTime);
-
       const timeNow = new Date();
       const millisecondsUntilExpiry = expiryDate - timeNow;
 
@@ -34,10 +33,12 @@ export const signUp = (firstName, lastName, email, password) => {
 
       dispatch(authenticate({ token: accessToken, userData }));
       saveDataToStorage(accessToken, uid, expiryDate);
+
       timer = setTimeout(() => {
-        dispatch(logOut());
+        dispatch(userLogout());
       }, millisecondsUntilExpiry);
     } catch (error) {
+      console.log(error);
       const errorCode = error.code;
 
       let message = "Something went wrong.";
@@ -69,12 +70,12 @@ export const signIn = (email, password) => {
 
       dispatch(authenticate({ token: accessToken, userData }));
       saveDataToStorage(accessToken, uid, expiryDate);
+
       timer = setTimeout(() => {
-        dispatch(logOut());
+        dispatch(userLogout());
       }, millisecondsUntilExpiry);
     } catch (error) {
       const errorCode = error.code;
-      console.log(error.code);
 
       let message = "Something went wrong.";
 
@@ -90,12 +91,23 @@ export const signIn = (email, password) => {
   };
 };
 
-export const logOut = () => {
+export const userLogout = () => {
   return async (dispatch) => {
     AsyncStorage.clear();
     clearTimeout(timer);
     dispatch(logout());
   };
+};
+
+export const updateSignedInUserData = async (userId, newData) => {
+  if (newData.firstName && newData.lastName) {
+    const firstLast = `${newData.firstName} ${newData.lastName}`.toLowerCase();
+    newData.firstLast = firstLast;
+  }
+
+  const dbRef = ref(getDatabase());
+  const childRef = child(dbRef, `users/${userId}`);
+  await update(childRef, newData);
 };
 
 const createUser = async (firstName, lastName, email, userId) => {

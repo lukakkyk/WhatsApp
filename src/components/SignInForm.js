@@ -74,6 +74,7 @@ const SignInForm = (props) => {
         autoCapitalize="none"
         errorText={formState.inputValidities["email"]}
         value={formState.inputValues.email}
+        initialValue={formState.inputValues.email}
       />
       <Input
         icon="lock"
@@ -86,6 +87,7 @@ const SignInForm = (props) => {
         secureTextEntry={true}
         errorText={formState.inputValidities["password"]}
         value={formState.inputValues.password}
+        initialValue={formState.inputValues.password}
       />
       {isLoading ? (
         <ActivityIndicator

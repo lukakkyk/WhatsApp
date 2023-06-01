@@ -1,33 +1,34 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const authSlice = createSlice({
-    name:"auth",
-    initialState:{
-        token:null,
-        userData:null,
-        didTryAutoLogin:false
+  name: "auth",
+  initialState: {
+    token: null,
+    userData: null,
+    didTryAutoLogin: false,
+  },
+  reducers: {
+    authenticate: (state, action) => {
+      const { payload } = action;
+      state.token = payload.token;
+      state.userData = payload.userData;
+      state.didTryAutoLogin = true;
     },
-    reducers:{
-        authenticate:(state, action) => {
-            const {payload} = action;
-            state.token = payload.token;
-            state.userData = payload.userData;
-            state.didTryAutoLogin = false;
-        
-        },
-        setDidTryAutoLogin:(state, action) => {
-            state.didTryAutoLogin = true
-        },
-        logout:(state, action) => {
-            state.token = null;
-            state.userData = null;
-            state.didTryAutoLogin = false;
-        }
+    setDidTryAutoLogin: (state, action) => {
+      state.didTryAutoLogin = true;
+    },
+    logout: (state, action) => {
+      state.token = null;
+      state.userData = null;
+      state.didTryAutoLogin = false;
+    },
+    updateLoggedInUserData:(state, action) => {
+      state.userData = {...state.userData, ...action.payload.newData}
     }
-})
-
-export const authenticate = authSlice.actions.authenticate; 
-export const setDidTryAutoLogin = authSlice.actions.setDidTryAutoLogin; 
+  },
+});
+export const setDidTryAutoLogin = authSlice.actions.setDidTryAutoLogin;
+export const authenticate = authSlice.actions.authenticate;
 export const logout = authSlice.actions.logout;
-
+export const updateLogeedInUserData = authSlice.actions.updateLoggedInUserData;
 export default authSlice.reducer;

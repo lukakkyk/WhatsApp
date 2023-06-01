@@ -1,19 +1,23 @@
-import React from "react";
+import React, {useState} from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import Colors from "../constants/Colors";
 
 const Input = ({label, icon, iconSize, errorText, IconPack, onInputChanged, id, ...props }) => {
 
   const onChangetext = (text) => {
+    setValue(text)
      onInputChanged(id, text)
   }
+
+  const [value, setValue] = useState(props.initialValue);
+  console.log('initialValue', props.initialValue)
 
   return (
     <View style={styles.cotnainer}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputContainer}>
       {icon && <IconPack style={styles.icon} name={icon} size={iconSize || 15} color="black" />}
-        <TextInput {...props} style={styles.input} onChangeText={onChangetext} />
+        <TextInput {...props} style={styles.input} value={value} onChangeText={onChangetext} />
       </View>
       {errorText && <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{errorText}</Text>
