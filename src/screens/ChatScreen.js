@@ -10,19 +10,26 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from '../constants/Colors';
+import Colors from "../constants/Colors";
 import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import Bubble from "../components/Bubble";
+
 import { createChat } from "../utils/actions/chatActions";
+import { sendTextMessage } from "../utils/actions/chatActions";
 const ChatScreen = (props) => {
   const [messageText, setMessageText] = useState("");
   const storedUsers = useSelector((state) => state.users.storedUsers);
+  const storedChats = useSelector((state) => state.chats.chatsData);
+  const chatMessages = useSelector((state) => state.messages.messagesData);
+  console.log("chatMessages", chatMessages);
+
   const userData = useSelector((state) => state.auth.userData);
   const [chatId, setChatId] = useState(props.route?.params?.chatId);
-  console.log("userData", userData);
-  const chatData = props.route?.params?.newChatData;
-  // console.log("chatData", chatData);
+  // console.log("userData", userData);
+
+  const chatData =
+    (chatId && storedChats[chatId]) || props.route?.params?.newChatData;
 
   const [chatUsers, setChatUsers] = useState([]);
 
@@ -42,16 +49,16 @@ const ChatScreen = (props) => {
     setChatUsers(chatData.users);
   }, [chatUsers]);
 
-  const sendMessage = useCallback(async() => {
-
+  const sendMessage = useCallback(async () => {
     try {
       let id = chatId;
-      if(!id) {
+      if (!id) {
         id = await createChat(userData.userId, props.route.params.newChatData);
-        setChatId(id)
+        setChatId(id);
       }
+      await sendTextMessage(chatId, userData.userId, messageText);
     } catch (error) {
-      
+      console.log("error", error);
     }
 
     setMessageText("");
@@ -69,7 +76,9 @@ const ChatScreen = (props) => {
           source={require("../../assets/images/droplet.jpeg")}
         >
           <PageContainer style={{ backgroundColor: "transparent" }}>
-            {!chatId && <Bubble type='system' text='This is a new Chat say hi!' />}
+            {!chatId && (
+              <Bubble type="system" text="This is a new Chat say hi!" />
+            )}
           </PageContainer>
         </ImageBackground>
         <View style={styles.inputContainer}>

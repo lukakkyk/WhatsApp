@@ -1,24 +1,45 @@
+import { child, getDatabase, push, ref, update } from "firebase/database";
 import { getFirebaseApp } from "../firebaseHelper";
-import {ref, getDatabase, push, child} from 'firebase/database'
-export const createChat = async(loggedInUserId, chatData) => {
-    const newChatData = {
-        ...chatData,
-        createdBy:loggedInUserId,
-        updatedBy:loggedInUserId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
 
-    const app = getFirebaseApp();
-    const dbRef = ref(getDatabase(app));
-    const newChat = await push(child(dbRef, 'chats'), newChatData);
+export const createChat = async (loggedInUserId, chatData) => {
+  const newChatData = {
+    ...chatData,
+    createdBy: loggedInUserId,
+    updatedBy: loggedInUserId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
-    const chatUsers = newChatData.users;
-    for (let i = 0; i < chatUsers.length; i++) {
-        const userId = chatUsers[i];
-        await push(child(dbRef, `userChats/${userId}`), newChat.key)
-    }
+  const app = getFirebaseApp();
+  const dbRef = ref(getDatabase(app));
+  const newChat = await push(child(dbRef, "chats"), newChatData);
 
-    return newChat.key;
+  const chatUsers = newChatData.users;
+  for (let i = 0; i < chatUsers.length; i++) {
+    const userId = chatUsers[i];
+    await push(child(dbRef, `userChats/${userId}`), newChat.key);
+  }
 
-}
+  return newChat.key;
+};
+
+export const sendTextMessage = async (chatId, senderId, messageText) => {
+  const app = getFirebaseApp();
+  const dbRef = ref(getDatabase());
+  const messagesRef = child(dbRef, `messages/${chatId}`);
+
+  const messageData = {
+    sentBy: senderId,
+    sentAt: new Date().toISOString(),
+    text: messageText,
+  };
+
+  await push(messagesRef, messageData);
+
+  const chatRef = child(dbRef, `chats/${chatId}`);
+  await update(chatRef, {
+    updatedBy: senderId,
+    updatedAt: new Date().toISOString(),
+    latestMessageText: messageText,
+  });
+};
