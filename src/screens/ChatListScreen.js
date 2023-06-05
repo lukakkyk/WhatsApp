@@ -2,9 +2,29 @@ import React, { useEffect } from "react";
 import { Text, View, Button } from "react-native";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import CustomHeaderButton from "../components/CustomHeaderButton";
-const ChatListScreen = ({ navigation }) => {
+import { useSelector } from "react-redux";
+const ChatListScreen = (props) => {
+  const userData = useSelector((state) => state.auth.userData);
+  const selectedUser = props.route?.params?.selectedUserId;
+
   useEffect(() => {
-    navigation.setOptions({
+    if (!selectedUser) {
+      return;
+    }
+
+    const chatUsers = [selectedUser, userData.userId];
+
+    const navigationProps = {
+      newChatData: {
+        users: chatUsers,
+      },
+    };
+
+    props.navigation.navigate("ChatScreen", navigationProps);
+  }, [props.route?.params]);
+
+  useEffect(() => {
+    props.navigation.setOptions({
       headerRight: () => {
         return (
           <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
@@ -16,12 +36,11 @@ const ChatListScreen = ({ navigation }) => {
             <Item
               title="new Chat"
               iconName="create-outline"
-              onPress={() =>navigation.navigate('NewChat')}
+              onPress={() => props.navigation.navigate("NewChat")}
             />
           </HeaderButtons>
         );
       },
-      
     });
   }, []);
 
@@ -31,7 +50,7 @@ const ChatListScreen = ({ navigation }) => {
       {/* <Button title='log out' onPress={logout} /> */}
       <Button
         title="chat screen"
-        onPress={() => navigation.navigate("ChatScreen")}
+        onPress={() => props.navigation.navigate("ChatScreen")}
       />
     </View>
   );

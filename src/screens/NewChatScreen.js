@@ -14,12 +14,17 @@ import { FontAwesome } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
 import commonStyle from "../constants/commonStyle";
 import { searchUsers } from "../utils/actions/userActions";
+import { useSelector, useDispatch } from "react-redux";
+import { setStoredUsers } from "../store/userSlice"; 
 import DataItem from "../components/DataItem";
 const NewChatScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState();
   const [noResultsFound, setNoResultsFound] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const userData = useSelector((state) => state.auth.userData);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     navigation.setOptions({
@@ -44,12 +49,14 @@ const NewChatScreen = ({ navigation }) => {
 
       setIsLoading(true);
       const usersResult = await searchUsers(searchTerm);
+      delete usersResult[userData.userId];
       setUsers(usersResult);
       console.log("usersResult", usersResult);
       if (Object.keys(usersResult).length === 0) {
         setNoResultsFound(true);
       } else {
         setNoResultsFound(false);
+        dispatch(setStoredUsers({newUsers:usersResult}))
       }
       //   setUsers({});
       //   setNoResultsFound(true);
@@ -57,6 +64,12 @@ const NewChatScreen = ({ navigation }) => {
     }, 500);
     return () => clearTimeout(delaySearch);
   }, [searchTerm]);
+
+  const userPressed = (userId) => {
+    navigation.navigate("ChatList", {
+      selectedUserId: userId,
+    });
+  };
 
   return (
     <PageContainer>
@@ -85,6 +98,7 @@ const NewChatScreen = ({ navigation }) => {
                 title={`${userData.firstName} ${userData.lastName}`}
                 subTitle={userData.about}
                 image={userData.profilePicture}
+                onPress={() => userPressed(userId)}
               />
             );
           }}

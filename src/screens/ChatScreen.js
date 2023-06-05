@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -10,14 +10,52 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../constants/Colors";
-
-const ChatScreen = ({ navigation }) => {
+import Colors from '../constants/Colors';
+import { useSelector } from "react-redux";
+import PageContainer from "../components/PageContainer";
+import Bubble from "../components/Bubble";
+import { createChat } from "../utils/actions/chatActions";
+const ChatScreen = (props) => {
   const [messageText, setMessageText] = useState("");
+  const storedUsers = useSelector((state) => state.users.storedUsers);
+  const userData = useSelector((state) => state.auth.userData);
+  const [chatId, setChatId] = useState(props.route?.params?.chatId);
+  console.log("userData", userData);
+  const chatData = props.route?.params?.newChatData;
+  // console.log("chatData", chatData);
 
-  const sendMessage = useCallback(() => {
+  const [chatUsers, setChatUsers] = useState([]);
+
+  const getChatTitleFromName = () => {
+    const otherUserId = chatUsers.find((uid) => uid !== userData.userId);
+    const otherUserData = storedUsers[otherUserId];
+
+    return (
+      otherUserData && `${otherUserData.firstName} ${otherUserData.lastName}`
+    );
+  };
+
+  useEffect(() => {
+    props.navigation.setOptions({
+      headerTitle: getChatTitleFromName(),
+    });
+    setChatUsers(chatData.users);
+  }, [chatUsers]);
+
+  const sendMessage = useCallback(async() => {
+
+    try {
+      let id = chatId;
+      if(!id) {
+        id = await createChat(userData.userId, props.route.params.newChatData);
+        setChatId(id)
+      }
+    } catch (error) {
+      
+    }
+
     setMessageText("");
-  }, [messageText]);
+  }, [messageText, chatId]);
 
   return (
     <SafeAreaView style={styles.container} edges={["right", "left", "bottom"]}>
@@ -29,7 +67,11 @@ const ChatScreen = ({ navigation }) => {
         <ImageBackground
           style={styles.imageBackground}
           source={require("../../assets/images/droplet.jpeg")}
-        ></ImageBackground>
+        >
+          <PageContainer style={{ backgroundColor: "transparent" }}>
+            {!chatId && <Bubble type='system' text='This is a new Chat say hi!' />}
+          </PageContainer>
+        </ImageBackground>
         <View style={styles.inputContainer}>
           <Pressable style={styles.icons}>
             <Feather name="plus" size={24} color={Colors.blue} />

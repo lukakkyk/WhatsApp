@@ -7,5 +7,6 @@ export default {
     primary: "#32d48e",
     red:'#e74c3c',
     white:'#fff',
-    extraLightGrey:'#ededed'
+    extraLightGrey:'#ededed',
+    beige:'#fef5c3'
 }
