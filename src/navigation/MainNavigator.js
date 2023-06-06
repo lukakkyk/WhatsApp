@@ -12,11 +12,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { getFirebaseApp } from "../utils/firebaseHelper";
 import { child, getDatabase, off, onValue, ref, get } from "firebase/database";
 import { setChatsData } from "../store/chatSlice";
-import {setStoredUsers} from '../store/userSlice';
+import { setStoredUsers } from "../store/userSlice";
 import { ActivityIndicator, View } from "react-native";
 import Colors from "../constants/Colors";
 import commonStyle from "../constants/commonStyle";
-import { setChatMessages } from "../store/messagesSlice";
+import { setChatMessages, setStarredMessages } from "../store/messagesSlice";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -122,15 +122,15 @@ const MainNavigator = (props) => {
           if (data) {
             data.key = chatSnapshot.key;
 
-            data.users.forEach(userId => {
-              if(storedUsers[userId]) return;
-              const userRef = child(dbRef, `users/${userId}`)
-              get(userRef).then(userSnapshot => {
-                const userSnapshotData = userSnapshot.val()
-                dispatch(setStoredUsers({newUsers:{userSnapshotData}}))
-              })
+            data.users.forEach((userId) => {
+              if (storedUsers[userId]) return;
+              const userRef = child(dbRef, `users/${userId}`);
+              get(userRef).then((userSnapshot) => {
+                const userSnapshotData = userSnapshot.val();
+                dispatch(setStoredUsers({ newUsers: { userSnapshotData } }));
+              });
               refs.push(userRef);
-            })
+            });
 
             chatsData[chatSnapshot.key] = data;
           }
@@ -141,19 +141,32 @@ const MainNavigator = (props) => {
           }
         });
 
-        const messagesRef = child(dbRef, `messages/${chatId}`)
-        refs.push(messagesRef)
-        onValue(messagesRef, messagesSnapshot => {
-          const messagesData = messagesSnapshot.val()
-          dispatch(setChatMessages({
-            chatId, messagesData
-          }))
-        })
+        const messagesRef = child(dbRef, `messages/${chatId}`);
+        refs.push(messagesRef);
+        onValue(messagesRef, (messagesSnapshot) => {
+          const messagesData = messagesSnapshot.val();
+          dispatch(
+            setChatMessages({
+              chatId,
+              messagesData,
+            })
+          );
+        });
 
         if (chatsFoundCount == 0) {
           setIsLoading(false);
         }
       }
+    });
+
+    const userStarredMessagesRef = child(
+      dbRef,
+      `userStarredMessages/${userData.userId}`
+    );
+    refs.push(userStarredMessagesRef);
+    onValue(userStarredMessagesRef, (querySnapshot) => {
+      const starredMessages = querySnapshot.val() ?? {};
+      dispatch(setStarredMessages({ starredMessages }));
     });
 
     return () => {
