@@ -5,8 +5,6 @@ import {
   ImageBackground,
   TextInput,
   Pressable,
-  KeyboardAvoidingView,
-  Platform,
   FlatList,
   Image,
   ActivityIndicator,
@@ -36,7 +34,6 @@ const ChatScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const flatlist = useRef();
-
   const storedUsers = useSelector((state) => state.users.storedUsers);
   const storedChats = useSelector((state) => state.chats.chatsData);
   const chatMessages = useSelector((state) => {
@@ -47,7 +44,6 @@ const ChatScreen = (props) => {
     const messageList = [];
     for (const key in chatMessagesData) {
       const message = chatMessagesData[key];
-      // message.key = key;
       messageList.push({
         key,
         ...message,
@@ -56,11 +52,7 @@ const ChatScreen = (props) => {
     return messageList;
   });
 
-  console.log("chatMessages", chatMessages);
-
   const userData = useSelector((state) => state.auth.userData);
-
-  // console.log("userData", userData);
 
   const chatData =
     (chatId && storedChats[chatId]) || props.route?.params?.newChatData;
@@ -74,9 +66,11 @@ const ChatScreen = (props) => {
     );
   };
 
+  const title = chatData.chatName ?? getChatTitleFromName();
+
   useEffect(() => {
     props.navigation.setOptions({
-      headerTitle: getChatTitleFromName(),
+      headerTitle: title
     });
     setChatUsers(chatData.users);
   }, [chatUsers]);
@@ -153,121 +147,121 @@ const ChatScreen = (props) => {
 
   return (
     <SafeAreaView style={styles.container} edges={["right", "left", "bottom"]}>
-      <KeyboardAvoidingView
-        keyboardVerticalOffset={100}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.screen}
+      <ImageBackground
+        style={styles.imageBackground}
+        source={require("../../assets/images/droplet.jpeg")}
       >
-        <ImageBackground
-          style={styles.imageBackground}
-          source={require("../../assets/images/droplet.jpeg")}
-        >
-          <PageContainer style={{ backgroundColor: "transparent" }}>
-            {!chatId && (
-              <Bubble type="system" text="This is a new Chat say hi!" />
-            )}
-            {errorBannerText !== "" && (
-              <Bubble text={errorBannerText} type="error" />
-            )}
-            {chatId && (
-              <FlatList
-                ref={(ref) => (flatlist.current = ref)}
-                onContentSizeChange={() => flatlist.current.scrollToEnd({animated:false})}
-                onLayout={() => flatlist.current.scrollToEnd({animated:false})}
-                data={chatMessages}
-                renderItem={(itemData) => {
-                  const message = itemData.item;
+        <PageContainer style={{ backgroundColor: "transparent" }}>
+          {!chatId && (
+            <Bubble type="system" text="This is a new Chat say hi!" />
+          )}
+          {errorBannerText !== "" && (
+            <Bubble text={errorBannerText} type="error" />
+          )}
+          {chatId && (
+            <FlatList
+              ref={(ref) => (flatlist.current = ref)}
+              onContentSizeChange={() =>
+                flatlist.current.scrollToEnd({ animated: false })
+              }
+              onLayout={() => flatlist.current.scrollToEnd({ animated: false })}
+              data={chatMessages}
+              renderItem={(itemData) => {
+                const message = itemData.item;
 
-                  const isOwnMessage = message.sentBy === userData.userId;
+                const isOwnMessage = message.sentBy === userData.userId;
 
-                  const messageType = isOwnMessage
-                    ? "myMessage"
-                    : "theirMessage";
+                const messageType = isOwnMessage ? "myMessage" : "theirMessage";
 
-                  return (
-                    <Bubble
-                      type={messageType}
-                      text={message.text}
-                      messageId={message.key}
-                      userId={userData.userId}
-                      chatId={chatId}
-                      date={message.sentAt}
-                      imageUrl={message.imageUrl}
-                      setReply={() => setReplyingTo(message)}
-                      replyingTo={
-                        message.replyTo &&
-                        chatMessages.find((i) => i.key === message.replyTo)
-                      }
-                    />
-                  );
-                }}
-              />
-            )}
-          </PageContainer>
-          {replyingTo && (
-            <ReplyTo
-              text={replyingTo.text}
-              user={storedUsers[replyingTo.sentBy]}
-              onCancel={() => setReplyingTo(null)}
+                const sender = message.sentBy && storedUsers[message.sentBy];
+                const name = sender && `${sender.firstName} ${sender.lastName}`;
+
+                return (
+                  <Bubble
+                    type={messageType}
+                    text={message.text}
+                    messageId={message.key}
+                    userId={userData.userId}
+                    chatId={chatId}
+                    name={
+                      !chatData.isGroupChat || isOwnMessage ? undefined : name
+                    }
+                    date={message.sentAt}
+                    imageUrl={message.imageUrl}
+                    setReply={() => setReplyingTo(message)}
+                    replyingTo={
+                      message.replyTo &&
+                      chatMessages.find((i) => i.key === message.replyTo)
+                    }
+                  />
+                );
+              }}
             />
           )}
-        </ImageBackground>
-        <View style={styles.inputContainer}>
-          <Pressable style={styles.icons} onPress={pickImage}>
-            <Feather name="plus" size={24} color={Colors.blue} />
+        </PageContainer>
+        {replyingTo && (
+          <ReplyTo
+            text={replyingTo.text}
+            user={storedUsers[replyingTo.sentBy]}
+            onCancel={() => setReplyingTo(null)}
+          />
+        )}
+      </ImageBackground>
+      <View style={styles.inputContainer}>
+        <Pressable style={styles.icons} onPress={pickImage}>
+          <Feather name="plus" size={24} color={Colors.blue} />
+        </Pressable>
+        <TextInput
+          value={messageText}
+          onChangeText={(text) => setMessageText(text)}
+          style={styles.inputStyle}
+          onSubmitEditing={sendMessage}
+        />
+        {messageText === "" && (
+          <Pressable onPress={takePhoto} style={styles.icons}>
+            <Feather name="camera" size={24} color={Colors.blue} />
           </Pressable>
-          <TextInput
-            value={messageText}
-            onChangeText={(text) => setMessageText(text)}
-            style={styles.inputStyle}
-            onSubmitEditing={sendMessage}
-          />
-          {messageText === "" && (
-            <Pressable onPress={takePhoto} style={styles.icons}>
-              <Feather name="camera" size={24} color={Colors.blue} />
-            </Pressable>
-          )}
-          {messageText !== "" && (
-            <Pressable
-              onPress={sendMessage}
-              style={{ ...styles.icons, ...styles.sendButton }}
-            >
-              <Feather name="send" size={20} color={Colors.white} />
-            </Pressable>
-          )}
-          <AwesomeAlert
-            show={tempImageUri !== ""}
-            title="Send Image?"
-            closeOnTouchOutside={true}
-            closeOnHardwareBackPress={false}
-            showCancelButton={true}
-            showConfirmButton={true}
-            cancelText="Cancel"
-            confirmText="Send image"
-            confirmButtonColor={Colors.primary}
-            cancelButtonColor={Colors.red}
-            titleStyle={styles.popupTitleStyle}
-            onCancelPressed={() => setTempImageUri("")}
-            onConfirmPressed={uploadImage}
-            onDismiss={() => setTempImageUri("")}
-            customView={
-              <View>
-                {isLoading && (
-                  <ActivityIndicator size="small" color={Colors.primary} />
-                )}
-                {!isLoading && tempImageUri !== "" && (
-                  <Image
-                    style={{ width: 200, height: 200 }}
-                    source={{
-                      uri: tempImageUri,
-                    }}
-                  />
-                )}
-              </View>
-            }
-          />
-        </View>
-      </KeyboardAvoidingView>
+        )}
+        {messageText !== "" && (
+          <Pressable
+            onPress={sendMessage}
+            style={{ ...styles.icons, ...styles.sendButton }}
+          >
+            <Feather name="send" size={20} color={Colors.white} />
+          </Pressable>
+        )}
+        <AwesomeAlert
+          show={tempImageUri !== ""}
+          title="Send Image?"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={true}
+          showConfirmButton={true}
+          cancelText="Cancel"
+          confirmText="Send image"
+          confirmButtonColor={Colors.primary}
+          cancelButtonColor={Colors.red}
+          titleStyle={styles.popupTitleStyle}
+          onCancelPressed={() => setTempImageUri("")}
+          onConfirmPressed={uploadImage}
+          onDismiss={() => setTempImageUri("")}
+          customView={
+            <View>
+              {isLoading && (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              )}
+              {!isLoading && tempImageUri !== "" && (
+                <Image
+                  style={{ width: 200, height: 200 }}
+                  source={{
+                    uri: tempImageUri,
+                  }}
+                />
+              )}
+            </View>
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -277,9 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
   },
-  screen: {
-    flex: 1,
-  },
+
   imageBackground: {
     flex: 1,
   },

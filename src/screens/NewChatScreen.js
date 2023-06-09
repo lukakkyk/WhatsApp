@@ -17,6 +17,7 @@ import { searchUsers } from "../utils/actions/userActions";
 import { useSelector, useDispatch } from "react-redux";
 import { setStoredUsers } from "../store/userSlice";
 import DataItem from "../components/DataItem";
+import ProfileImage from "../components/ProfileImage";
 const NewChatScreen = ({ navigation, ...props }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState();
@@ -25,6 +26,7 @@ const NewChatScreen = ({ navigation, ...props }) => {
   const [chatName, setChatName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const userData = useSelector((state) => state.auth.userData);
+  const storedUsers = useSelector((state) => state.users.storedUsers);
 
   const isGroupChat = props.route.params && props.route.params.isGroupChat;
   const isGroupChatDisabled = selectedUsers.length === 0 || chatName === "";
@@ -48,7 +50,12 @@ const NewChatScreen = ({ navigation, ...props }) => {
                 disabled={isGroupChatDisabled}
                 // color={isGroupChatDisabled ? 'red' : undefined}
                 title="Create"
-                onPress={() => console.log("hello")}
+                onPress={() =>
+                  navigation.navigate("ChatList", {
+                    selectedUsers,
+                    chatName
+                  })
+                }
               />
             )}
           </HeaderButtons>
@@ -100,18 +107,43 @@ const NewChatScreen = ({ navigation, ...props }) => {
   return (
     <PageContainer>
       {isGroupChat && (
-        <View style={styles.chatNameContainer}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textBox}
-              placeholder="Enter a name for your chat!"
-              autoCorrect={false}
-              autoComplete={false}
-              onChangeText={(text) => setChatName(text)}
-              value={chatName}
+        <>
+          <View style={styles.chatNameContainer}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textBox}
+                placeholder="Enter a name for your chat!"
+                autoCorrect={false}
+                autoComplete="false"
+                onChangeText={(text) => setChatName(text)}
+                value={chatName}
+              />
+            </View>
+          </View>
+
+          <View style={styles.selectedUsersContainer}>
+            <FlatList
+              style={styles.selectedUsersList}
+              contentContainerStyle={{ alignItems: "center" }}
+              data={selectedUsers}
+              keyExtractor={(item) => item}
+              horizontal={true}
+              renderItem={(itemData) => {
+                const userId = itemData.item;
+                const userData = storedUsers[userId];
+                return (
+                  <ProfileImage
+                    style={styles.selectedUserStyle}
+                    size={40}
+                    uri={userData.profilePicture}
+                    onPress={() => userPressed(userId)}
+                    showRemoveButton={true}
+                  />
+                );
+              }}
             />
           </View>
-        </View>
+        </>
       )}
       <View style={styles.searchContainer}>
         <FontAwesome name="search" size={15} color={Colors.lightGrey} />
@@ -215,6 +247,17 @@ const styles = StyleSheet.create({
     fontFamily: "regular",
     letterSpacing: 0.3,
     width: "100%",
+  },
+  selectedUsersContainer: {
+    height: 50,
+    justifyContent: "center",
+  },
+  selectedUsersList: {
+    height: "100%",
+    paddingTop: 10,
+  },
+  selectedUserStyle: {
+    marginRight: 10,
   },
 });
 
