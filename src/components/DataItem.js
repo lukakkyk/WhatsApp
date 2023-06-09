@@ -1,9 +1,10 @@
 import React from "react";
 import { View, StyleSheet, TouchableWithoutFeedback, Text } from "react-native";
 import Colors from "../constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 import ProfileImage from "./ProfileImage";
 const DataItem = (props) => {
-  const { title, subTitle, image } = props;
+  const { title, subTitle, image, type, isChecked } = props;
   return (
     <TouchableWithoutFeedback onPress={props.onPress}>
       <View style={styles.container}>
@@ -16,6 +17,11 @@ const DataItem = (props) => {
             {subTitle}
           </Text>
         </View>
+        {type === "checkbox" && (
+          <View style={{...styles.iconContainer, ...isChecked && styles.checkedStyle}}>
+            <Ionicons name="checkmark" size={24} color="white" />
+          </View>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -40,10 +46,20 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     color: Colors.grey,
   },
-  textContainer:{
-    marginLeft:14,
-
-  }
+  textContainer: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  iconContainer: {
+    borderWidth: 1,
+    borderRadius: 50,
+    borderColor: Colors.lightGrey,
+    backgroundColor: Colors.white,
+  },
+  checkedStyle: {
+    backgroundColor: Colors.primary,
+    borderColor: "transparent",
+  },
 });
 
 export default DataItem;

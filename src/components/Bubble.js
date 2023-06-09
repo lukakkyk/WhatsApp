@@ -1,5 +1,11 @@
 import React, { useRef } from "react";
-import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableWithoutFeedback,
+  Image,
+} from "react-native";
 import Colors from "../constants/Colors";
 import {
   Menu,
@@ -38,12 +44,25 @@ const MenuItem = (props) => {
 };
 
 const Bubble = (props) => {
-  const { text, type, messageId, chatId, userId, date } = props;
+  const {
+    text,
+    type,
+    messageId,
+    chatId,
+    userId,
+    date,
+    setReply,
+    replyingTo,
+    name,
+    imageUrl,
+  } = props;
 
   const starredMessages = useSelector(
     (state) => state.messages.starredMessages[chatId] ?? {}
   );
-  console.log("starredMessages", starredMessages);
+
+  const storedUsers = useSelector((state) => state.users.storedUsers);
+  
 
   const bubbleStyle = { ...styles.container };
   const textStyle = { ...styles.text };
@@ -55,7 +74,7 @@ const Bubble = (props) => {
   let Container = View;
   isUserMessage = false;
 
-  const dateString = formatDate(date);
+  const dateString = date && formatDate(date);
 
   switch (type) {
     case "system":
@@ -82,6 +101,9 @@ const Bubble = (props) => {
       bubbleStyle.maxWidth = "90%";
       Container = TouchableWithoutFeedback;
       isUserMessage = true;
+      break;
+    case "reply":
+      bubbleStyle.backgroundColor = "#f2f2f2";
 
     default:
       break;
@@ -96,6 +118,7 @@ const Bubble = (props) => {
   };
 
   const isStarred = isUserMessage && starredMessages[messageId] !== undefined;
+  const replyingToUser = replyingTo && storedUsers[replyingTo.sentBy];
 
   return (
     <View style={wrapperStyle}>
@@ -106,7 +129,18 @@ const Bubble = (props) => {
         style={{ width: "100%" }}
       >
         <View style={bubbleStyle}>
-          <Text style={textStyle}>{text}</Text>
+          {name && <Text style={styles.name}>{name}</Text>}
+          {replyingToUser && (
+            <Bubble
+              type="reply"
+              text={replyingTo.text}
+              name={`${replyingToUser.firstName} ${replyingToUser.lastName}`}
+            />
+          )}
+          {!imageUrl && <Text style={textStyle}>{text}</Text>}
+          {imageUrl && (
+            <Image source={{uri:imageUrl}} style={styles.image} />
+          )}
           {dateString && (
             <View style={styles.timeContainer}>
               {isStarred && (
@@ -133,6 +167,12 @@ const Bubble = (props) => {
                 icon={isStarred ? "star" : "star-o"}
                 iconPack={FontAwesome}
                 onSelect={() => starMessage(messageId, chatId, userId)}
+              />
+              <MenuItem
+                text="Reply"
+                icon="arrow-left-circle"
+                iconPack={Feather}
+                onSelect={setReply}
               />
             </MenuOptions>
           </Menu>
@@ -173,12 +213,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
   },
-  time:{
-    fontFamily:'regular',
-    letterSpacing:0.3,
-    color:Colors.grey,
-    fontSize:12
-  }
+  time: {
+    fontFamily: "regular",
+    letterSpacing: 0.3,
+    color: Colors.grey,
+    fontSize: 12,
+  },
+  name: {
+    fontFamily: "medium",
+    letterSpacing: 0.3,
+  },
+  image: {
+    width: 300,
+    height: 300,
+    marginBottom: 5,
+  },
 });
 
 export default Bubble;

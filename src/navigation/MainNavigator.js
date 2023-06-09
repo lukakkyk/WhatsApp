@@ -95,7 +95,7 @@ const MainNavigator = (props) => {
   const storedUsers = useSelector((state) => state.users.storedUsers);
 
   useEffect(() => {
-    console.log("Subscribing to firebase listeners");
+    // console.log("Subscribing to firebase listeners");
 
     const app = getFirebaseApp();
     const dbRef = ref(getDatabase(app));

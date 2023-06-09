@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { FlatList } from "react-native";
+import { FlatList, TouchableOpacity, View, Text, StyleSheet} from "react-native";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import CustomHeaderButton from "../components/CustomHeaderButton";
 import { useSelector } from "react-redux";
 import DataItem from "../components/DataItem";
 import PageContainer from "../components/PageContainer";
 import PageTitle from "../components/PageTitle";
+import Colors from "../constants/Colors";
 const ChatListScreen = (props) => {
   const userData = useSelector((state) => state.auth.userData);
   const selectedUser = props.route?.params?.selectedUserId;
@@ -58,6 +59,11 @@ const ChatListScreen = (props) => {
   return (
     <PageContainer>
       <PageTitle title="Chats" />
+      <View>
+        <TouchableOpacity onPress={() => props.navigation.navigate("NewChat", {isGroupChat:true})}>
+          <Text style={styles.newGroupText}>New Group</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={userChats}
         renderItem={(itemData) => {
@@ -72,12 +78,13 @@ const ChatListScreen = (props) => {
 
           const title = `${otherUser.firstName} ${otherUser.lastName}`;
           const subTitle = chatData.latestMessageText || "New Chat";
-          const image = otherUser.profileImage;
+          const image = otherUser.profilePicture;
+          console.log("image", image);
 
           return (
             <DataItem
               onPress={() =>
-                props.navigation.navigate("ChatScreen", { chatId:chatId })
+                props.navigation.navigate("ChatScreen", { chatId: chatId })
               }
               title={title}
               subTitle={subTitle}
@@ -89,5 +96,14 @@ const ChatListScreen = (props) => {
     </PageContainer>
   );
 };
+
+
+const styles = StyleSheet.create({
+  newGroupText:{
+    color:Colors.blue,
+    fontSize:17,
+    marginBottom:5
+  }
+})
 
 export default ChatListScreen;

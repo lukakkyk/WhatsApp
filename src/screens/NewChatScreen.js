@@ -15,14 +15,19 @@ import Colors from "../constants/Colors";
 import commonStyle from "../constants/commonStyle";
 import { searchUsers } from "../utils/actions/userActions";
 import { useSelector, useDispatch } from "react-redux";
-import { setStoredUsers } from "../store/userSlice"; 
+import { setStoredUsers } from "../store/userSlice";
 import DataItem from "../components/DataItem";
-const NewChatScreen = ({ navigation }) => {
+const NewChatScreen = ({ navigation, ...props }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState();
   const [noResultsFound, setNoResultsFound] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [chatName, setChatName] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const userData = useSelector((state) => state.auth.userData);
+
+  const isGroupChat = props.route.params && props.route.params.isGroupChat;
+  const isGroupChatDisabled = selectedUsers.length === 0 || chatName === "";
 
   const dispatch = useDispatch();
 
@@ -35,9 +40,23 @@ const NewChatScreen = ({ navigation }) => {
           </HeaderButtons>
         );
       },
-      headerTitle: "New Chat",
+      headerRight: () => {
+        return (
+          <HeaderButtons HeaderButtonComponent={CustomHeaderButton}>
+            {isGroupChat && (
+              <Item
+                disabled={isGroupChatDisabled}
+                // color={isGroupChatDisabled ? 'red' : undefined}
+                title="Create"
+                onPress={() => console.log("hello")}
+              />
+            )}
+          </HeaderButtons>
+        );
+      },
+      headerTitle: isGroupChat ? "add participants" : "New Chat",
     });
-  }, []);
+  }, [chatName, selectedUsers]);
 
   useEffect(() => {
     const delaySearch = setTimeout(async () => {
@@ -56,7 +75,7 @@ const NewChatScreen = ({ navigation }) => {
         setNoResultsFound(true);
       } else {
         setNoResultsFound(false);
-        dispatch(setStoredUsers({newUsers:usersResult}))
+        dispatch(setStoredUsers({ newUsers: usersResult }));
       }
       //   setUsers({});
       //   setNoResultsFound(true);
@@ -66,13 +85,34 @@ const NewChatScreen = ({ navigation }) => {
   }, [searchTerm]);
 
   const userPressed = (userId) => {
-    navigation.navigate("ChatList", {
-      selectedUserId: userId,
-    });
+    if (isGroupChat) {
+      const newSelectedUsers = selectedUsers.includes(userId)
+        ? selectedUsers.filter((id) => id !== userId)
+        : selectedUsers.concat(userId);
+      setSelectedUsers(newSelectedUsers);
+    } else {
+      navigation.navigate("ChatList", {
+        selectedUserId: userId,
+      });
+    }
   };
 
   return (
     <PageContainer>
+      {isGroupChat && (
+        <View style={styles.chatNameContainer}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textBox}
+              placeholder="Enter a name for your chat!"
+              autoCorrect={false}
+              autoComplete={false}
+              onChangeText={(text) => setChatName(text)}
+              value={chatName}
+            />
+          </View>
+        </View>
+      )}
       <View style={styles.searchContainer}>
         <FontAwesome name="search" size={15} color={Colors.lightGrey} />
         <TextInput
@@ -99,6 +139,8 @@ const NewChatScreen = ({ navigation }) => {
                 subTitle={userData.about}
                 image={userData.profilePicture}
                 onPress={() => userPressed(userId)}
+                type={isGroupChat ? "checkbox" : ""}
+                isChecked={selectedUsers.includes(userId)}
               />
             );
           }}
@@ -156,6 +198,23 @@ const styles = StyleSheet.create({
     color: Colors.textColor,
     fontFamily: "regular",
     letterSpacing: 0.3,
+  },
+  chatNameContainer: {
+    paddingVertical: 10,
+  },
+  inputContainer: {
+    width: "100%",
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    backgroundColor: Colors.nearlyWhite,
+    flexDirection: "row",
+    borderRadius: 5,
+  },
+  textBox: {
+    color: Colors.textColor,
+    fontFamily: "regular",
+    letterSpacing: 0.3,
+    width: "100%",
   },
 });
 
